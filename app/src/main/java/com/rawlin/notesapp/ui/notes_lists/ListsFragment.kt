@@ -27,7 +27,11 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
                 val directions = ListsFragmentDirections.actionListsFragmentToNotesDetailsFragment()
                 findNavController().navigate(directions)
             }
-            if (recyclerView.isEmpty())
+
+            settingsButton.setOnClickListener {
+                val directions = ListsFragmentDirections.actionGlobalSettingsFragment()
+                findNavController().navigate(directions)
+            }
         }
     }
 }

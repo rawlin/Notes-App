@@ -1,24 +1,25 @@
 package com.rawlin.notesapp.ui.notes_lists.adapters
 
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import com.rawlin.notesapp.R
+import com.rawlin.notesapp.databinding.NotesItemBinding
 import com.rawlin.notesapp.domain.Note
 
-class PinnedNotesAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class PinnedNotesAdapter : RecyclerView.Adapter<PinnedNotesAdapter.NotesViewHolder>() {
 
     private val differCallback = object : DiffUtil.ItemCallback<Note>() {
 
         override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
-            TODO("not implemented")
+            return oldItem.id == newItem.id
         }
 
         override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
-            TODO("not implemented")
+            return oldItem == newItem
         }
 
     }
@@ -30,12 +31,18 @@ class PinnedNotesAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     inner class NotesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        fun bind(item: Note) = with(itemView) {
-            TODO("bind view with data")
+        private val binding = NotesItemBinding.bind(itemView)
+
+        fun bind(item: Note) = with(binding) {
+            itemTitleTextView.text = item.title
+            itemMessageTextView.text = item.message
+            itemView.setOnClickListener {
+                onItemClickListener?.let { it(item) }
+            }
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotesViewHolder {
 
         return NotesViewHolder(
             LayoutInflater.from(parent.context).inflate(
@@ -46,12 +53,8 @@ class PinnedNotesAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         )
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (holder) {
-            is NotesViewHolder -> {
-                holder.bind(differ.currentList.get(position))
-            }
-        }
+    override fun onBindViewHolder(holder: NotesViewHolder, position: Int) {
+        holder.bind(differ.currentList[position])
     }
 
     override fun getItemCount(): Int {
