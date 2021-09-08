@@ -5,7 +5,7 @@
     android:id="@+id/frameLayout2"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.SettingsFragment">
+    tools:context=".ui.settings.SettingsFragment">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar3"
@@ -46,12 +46,12 @@
 
             <TextView
                 android:layout_width="wrap_content"
-
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
                 android:text="Enable Pin" />
 
             <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/enablePinModeSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end" />
@@ -65,12 +65,12 @@
 
             <TextView
                 android:layout_width="wrap_content"
-
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
                 android:text="Show new notes to bottom" />
 
             <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/enableBottomSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end" />
@@ -84,12 +84,12 @@
 
             <TextView
                 android:layout_width="wrap_content"
-
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
-                android:text="Show alphabetically" />
+                android:text="Enable Sharing" />
 
             <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/enableSharingSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end" />
@@ -103,12 +103,12 @@
 
             <TextView
                 android:layout_width="wrap_content"
-
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
                 android:text="Show by created time" />
 
             <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/sortByTimeCreatedSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end" />

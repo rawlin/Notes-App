@@ -40,6 +40,11 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                 val message = noteMessageEditText.text.toString()
                 viewModel.createNote(title, message)
             }
+
+            detailsSettingsButton.setOnClickListener {
+                val destination = NotesDetailFragmentDirections.actionGlobalSettingsFragment()
+                findNavController().navigate(destination)
+            }
         }
 
         lifecycleScope.launch {

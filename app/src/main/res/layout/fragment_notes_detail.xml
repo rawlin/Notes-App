@@ -16,7 +16,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/detailsSettingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:padding="16dp"
+            android:src="@drawable/ic_settings" />
 
         <TextView
             android:id="@+id/noteTitleTextView"
@@ -24,17 +33,11 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            tools:text="Title" />
+            android:maxLength="20"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Title" />
 
-        <ImageButton
-            android:id="@+id/optionsButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:background="@android:color/transparent"
-            android:padding="16dp"
-            android:src="@drawable/ic_dots"
-            tools:layout_editor_absoluteX="355dp" />
 
         <ImageButton
             android:id="@+id/saveNoteButton"

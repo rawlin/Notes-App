@@ -21,7 +21,7 @@
         tools:layout="@layout/fragment_notes_detail" />
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.rawlin.notesapp.ui.SettingsFragment"
+        android:name="com.rawlin.notesapp.ui.settings.SettingsFragment"
         android:label="fragment_settings"
         tools:layout="@layout/fragment_settings" />
     <action android:id="@+id/action_global_settingsFragment" app:destination="@id/settingsFragment" />

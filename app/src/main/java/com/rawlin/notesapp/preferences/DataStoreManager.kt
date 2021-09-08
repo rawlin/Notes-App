@@ -25,13 +25,13 @@ class DataStoreManager @Inject constructor(
 
 
     val pinMode: Flow<Boolean> = settingsDataStore.data.map { preferences ->
-        preferences[PIN_MODE] ?: false
+        preferences[PIN_MODE] ?: true
     }
     val sortTimeCreated: Flow<Boolean> = settingsDataStore.data.map { preferences ->
         preferences[TIME_CREATE] ?: false
     }
     val sharing: Flow<Boolean> = settingsDataStore.data.map { preferences ->
-        preferences[SHARING] ?: false
+        preferences[SHARING] ?: true
     }
     val showBottom: Flow<Boolean> = settingsDataStore.data.map { preferences ->
         preferences[BOTTOM] ?: false
