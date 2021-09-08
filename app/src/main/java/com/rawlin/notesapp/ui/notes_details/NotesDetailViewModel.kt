@@ -20,7 +20,12 @@ class NotesDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _createNoteState = MutableSharedFlow<Resource<Unit>>()
-    val createNoteState: SharedFlow<Resource<Unit>> = _createNoteState
+    val createNoteState: SharedFlow<Resource<Unit>>
+        get() = _createNoteState
+
+    private val _updateNoteState = MutableSharedFlow<Resource<Unit>>()
+    val updateNoteState: SharedFlow<Resource<Unit>>
+        get() = _updateNoteState
 
 
     fun createNote(title: String, message: String) = viewModelScope.launch {
@@ -45,4 +50,55 @@ class NotesDetailViewModel @Inject constructor(
             Log.e(TAG, "Failed to create note: $e")
         }
     }
+
+    fun updateNote(title: String, message: String, id: Int) = viewModelScope.launch {
+        if (!title.isValidInput() || !message.isValidInput()) {
+            Log.d(TAG, "createNote: $title $message")
+            _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
+            return@launch
+        }
+        _updateNoteState.emit(Resource.Loading())
+        try {
+            val note = Note(
+                id = id,
+                title = title,
+                message = message
+            )
+            repository.updateNote(note)
+            _updateNoteState.emit(Resource.Success(Unit))
+        } catch (e: Throwable) {
+            _updateNoteState.emit(Resource.Error("Error updating note"))
+            Log.e(TAG, "Failed to update note: $e")
+        }
+    }
+
+    fun updatePinnedNote(title: String, message: String, id: Int) = viewModelScope.launch {
+        if (!title.isValidInput() || !message.isValidInput()) {
+            Log.d(TAG, "createNote: $title $message")
+            _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
+            return@launch
+        }
+        _updateNoteState.emit(Resource.Loading())
+        try {
+            val note = Note(
+                id = id,
+                title = title,
+                message = message
+            )
+            repository.updateNote(note)
+            _updateNoteState.emit(Resource.Success(Unit))
+        } catch (e: Throwable) {
+            _updateNoteState.emit(Resource.Error("Error updating note"))
+            Log.e(TAG, "Failed to update note: $e")
+        }
+    }
+
+    fun deleteNote() {
+        //TODO
+    }
+
+    fun pinNote() {
+        //TODO
+    }
+
 }

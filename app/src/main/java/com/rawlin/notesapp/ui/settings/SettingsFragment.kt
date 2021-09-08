@@ -8,6 +8,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
 import com.rawlin.notesapp.databinding.FragmentSettingsBinding
 import com.rawlin.notesapp.utils.BindingFragment
@@ -66,6 +67,10 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         }
 
         binding.apply {
+            backButton.setOnClickListener {
+                findNavController().popBackStack()
+            }
+
             enablePinModeSwitch.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.setPinMode(isChecked)
             }

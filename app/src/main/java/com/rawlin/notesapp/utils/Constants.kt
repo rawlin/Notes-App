@@ -9,4 +9,9 @@ object Constants {
     const val CONSUMER_KEY = "rawlin"
     const val CONSUMER_SECRET = "5a5605cd814041da"
     val EVERNOTE_SERVICE = EvernoteSession.EvernoteService.SANDBOX
+
+    const val NOTE = "note"
+    const val PINNED_NOTE = "pinned_note"
+
+    const val PICK_FROM_GALLARY = 2
 }

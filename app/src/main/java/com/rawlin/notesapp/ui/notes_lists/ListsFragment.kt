@@ -1,8 +1,6 @@
 package com.rawlin.notesapp.ui.notes_lists
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.view.isEmpty
@@ -18,10 +16,14 @@ import com.rawlin.notesapp.databinding.FragmentListsBinding
 import com.rawlin.notesapp.ui.notes_lists.adapters.AllNotesAdapter
 import com.rawlin.notesapp.ui.notes_lists.adapters.PinnedNotesAdapter
 import com.rawlin.notesapp.utils.BindingFragment
+import com.rawlin.notesapp.utils.Constants.NOTE
 import com.rawlin.notesapp.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import android.R
+import android.view.*
+
 
 @AndroidEntryPoint
 class ListsFragment : BindingFragment<FragmentListsBinding>() {
@@ -40,7 +42,8 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
 
         binding.apply {
             createNoteButton.setOnClickListener {
-                val directions = ListsFragmentDirections.actionListsFragmentToNotesDetailsFragment()
+                val directions =
+                    ListsFragmentDirections.actionListsFragmentToNotesDetailsFragment(null, null)
                 findNavController().navigate(directions)
             }
 
@@ -72,10 +75,40 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
                 }
 
                 launch {
-
+                    viewModel.allPinnedNotes.collect { pinnedNotes ->
+                        when (pinnedNotes) {
+                            is Resource.Success -> {
+                                pinnedNotesAdapter.submitList(pinnedNotes.data ?: emptyList())
+                            }
+                            is Resource.Error -> {
+                                Toast.makeText(
+                                    requireContext(),
+                                    pinnedNotes.error,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            is Resource.Loading -> Unit
+                        }
+                    }
                 }
 
             }
+        }
+
+        allNotesAdapter.setOnItemClickListener { note ->
+            val destination = ListsFragmentDirections.actionListsFragmentToNotesDetailsFragment(
+                note = note,
+                pinnedNote = null
+            )
+            findNavController().navigate(destination)
+        }
+
+        pinnedNotesAdapter.setOnItemClickListener { pinnedNote ->
+            val destination = ListsFragmentDirections.actionListsFragmentToNotesDetailsFragment(
+                note = null,
+                pinnedNote = pinnedNote
+            )
+            findNavController().navigate(destination)
         }
 
     }

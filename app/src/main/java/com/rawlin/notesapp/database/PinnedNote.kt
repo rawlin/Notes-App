@@ -1,10 +1,13 @@
 package com.rawlin.notesapp.database
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.rawlin.notesapp.domain.Note
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(
     tableName = "pinned_notes",
     foreignKeys = [ForeignKey(
@@ -22,4 +25,4 @@ data class PinnedNote(
     val createdTime: Long,
     val imageUri: String? = null,
     val lastOpened: Long? = null
-)
+): Parcelable

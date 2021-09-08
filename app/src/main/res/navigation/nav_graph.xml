@@ -18,7 +18,16 @@
         android:id="@+id/notesDetailsFragment"
         android:name="com.rawlin.notesapp.ui.notes_details.NotesDetailFragment"
         android:label="fragment_notes_details"
-        tools:layout="@layout/fragment_notes_detail" />
+        tools:layout="@layout/fragment_notes_detail" >
+        <argument
+            android:name="note"
+            app:argType="com.rawlin.notesapp.domain.Note"
+            app:nullable="true" />
+        <argument
+            android:name="pinned_note"
+            app:argType="com.rawlin.notesapp.database.PinnedNote"
+            app:nullable="true" />
+    </fragment>
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.rawlin.notesapp.ui.settings.SettingsFragment"

@@ -2,15 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/add_image_menu_item"
+        android:id="@+id/action_addImage"
         android:title="Add Image" />
     <item
-        android:id="@+id/pin_note_menu_item"
+        android:id="@+id/action_pin"
         android:title="Pin" />
     <item
-        android:id="@+id/share_note_menu_item"
+        android:id="@+id/action_share"
         android:title="Share" />
     <item
-        android:id="@+id/delete_note_menu_item"
+        android:id="@+id/action_delete"
         android:title="Delete" />
 </menu>

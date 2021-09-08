@@ -7,25 +7,26 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.rawlin.notesapp.R
+import com.rawlin.notesapp.database.PinnedNote
 import com.rawlin.notesapp.databinding.NotesItemBinding
-import com.rawlin.notesapp.domain.Note
+
 
 class PinnedNotesAdapter : RecyclerView.Adapter<PinnedNotesAdapter.NotesViewHolder>() {
 
-    private val differCallback = object : DiffUtil.ItemCallback<Note>() {
+    private val differCallback = object : DiffUtil.ItemCallback<PinnedNote>() {
 
-        override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
+        override fun areItemsTheSame(oldItem: PinnedNote, newItem: PinnedNote): Boolean {
             return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
+        override fun areContentsTheSame(oldItem: PinnedNote, newItem: PinnedNote): Boolean {
             return oldItem == newItem
         }
 
     }
     private val differ = AsyncListDiffer(this, differCallback)
 
-    fun submitList(list: List<Note>) {
+    fun submitList(list: List<PinnedNote>) {
         differ.submitList(list)
     }
 
@@ -33,7 +34,7 @@ class PinnedNotesAdapter : RecyclerView.Adapter<PinnedNotesAdapter.NotesViewHold
 
         private val binding = NotesItemBinding.bind(itemView)
 
-        fun bind(item: Note) = with(binding) {
+        fun bind(item: PinnedNote) = with(binding) {
             itemTitleTextView.text = item.title
             itemMessageTextView.text = item.message
             itemView.setOnClickListener {
@@ -61,9 +62,9 @@ class PinnedNotesAdapter : RecyclerView.Adapter<PinnedNotesAdapter.NotesViewHold
         return differ.currentList.size
     }
 
-    private var onItemClickListener: ((Note) -> Unit)? = null
+    private var onItemClickListener: ((PinnedNote) -> Unit)? = null
 
-    fun setOnItemClickListener(listener: (Note) -> Unit) {
+    fun setOnItemClickListener(listener: (PinnedNote) -> Unit) {
         onItemClickListener = listener
     }
 
