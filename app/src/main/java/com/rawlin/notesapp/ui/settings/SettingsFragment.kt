@@ -43,25 +43,14 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
                     launch {
                         showNewBottom.collect {
                             binding.enableBottomSwitch.isChecked = it
-                            Log.d(TAG, "2: $it")
                         }
                     }
 
                     launch {
                         sharingMode.collect {
                             binding.enableSharingSwitch.isChecked = it
-                            Log.d(TAG, "3: $it")
                         }
                     }
-
-                    launch {
-                        sortByCreatedTime.collect {
-                            binding.sortByTimeCreatedSwitch.isChecked = it
-
-                        }
-                    }
-
-
                 }
             }
         }
@@ -76,18 +65,9 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
             }
             enableBottomSwitch.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.setShowNewBottom(isChecked)
-                if (isChecked) {
-                    viewModel.setSortByCreatedTime(false)
-                }
             }
             enableSharingSwitch.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.setSharingMode(isChecked)
-            }
-            sortByTimeCreatedSwitch.setOnCheckedChangeListener { _, isChecked ->
-                viewModel.setSortByCreatedTime(isChecked)
-                if (isChecked) {
-                    viewModel.setShowNewBottom(false)
-                }
             }
 
         }

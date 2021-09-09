@@ -29,10 +29,6 @@ class SettingsViewModel @Inject constructor(
     private val _sharingMode = MutableStateFlow(false)
     val sharingMode: StateFlow<Boolean>
         get() = _sharingMode
-    private val _sortByCreatedTime = MutableStateFlow(false)
-    val sortByCreatedTime: StateFlow<Boolean>
-        get() = _sortByCreatedTime
-
 
 
     init {
@@ -61,13 +57,6 @@ class SettingsViewModel @Inject constructor(
                         Log.d(TAG, "Show New at Bottom: $it")
                     }
                 }
-
-                launch {
-                    sortTimeCreated.collect {
-                        _sortByCreatedTime.emit(it)
-                        Log.d(TAG, "Sort by Time Created: $it")
-                    }
-                }
             }
 
         }
@@ -81,9 +70,6 @@ class SettingsViewModel @Inject constructor(
     }
     fun setSharingMode(mode: Boolean) = viewModelScope.launch {
         dataStoreManager.setSharing(mode)
-    }
-    fun setSortByCreatedTime(mode: Boolean) = viewModelScope.launch {
-        dataStoreManager.setSortByTimeCreated(mode)
     }
 
 }

@@ -3,6 +3,7 @@ package com.rawlin.notesapp.ui.notes_details
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rawlin.notesapp.database.PinnedNote
 import com.rawlin.notesapp.domain.Note
 import com.rawlin.notesapp.repository.RepositoryImpl
 import com.rawlin.notesapp.utils.Resource
@@ -27,8 +28,19 @@ class NotesDetailViewModel @Inject constructor(
     val updateNoteState: SharedFlow<Resource<Unit>>
         get() = _updateNoteState
 
+    val isSharingEnabled
+        get() = repository.isSharingEnabled
 
-    fun createNote(title: String, message: String) = viewModelScope.launch {
+    private val _pinnedState: MutableStateFlow<Resource<Unit>> = MutableStateFlow(Resource.Loading())
+    val pinnedState: StateFlow<Resource<Unit>>
+        get() = _pinnedState
+
+    private val _deleteNoteStatus = MutableSharedFlow<Resource<Unit>>()
+    val deleteNoteStatus: SharedFlow<Resource<Unit>>
+        get() = _deleteNoteStatus
+
+
+    fun createNote(title: String, message: String, imageUri: String?) = viewModelScope.launch {
         if (!title.isValidInput() || !message.isValidInput()) {
             Log.d(TAG, "createNote: $title $message")
             _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
@@ -41,7 +53,8 @@ class NotesDetailViewModel @Inject constructor(
             val note = Note(
                 title = title,
                 message = message,
-                createdTime = System.currentTimeMillis()
+                createdTime = System.currentTimeMillis(),
+                imageUri = imageUri
             )
             repository.addNote(note)
             _createNoteState.emit(Resource.Success(Unit))
@@ -51,7 +64,7 @@ class NotesDetailViewModel @Inject constructor(
         }
     }
 
-    fun updateNote(title: String, message: String, id: Int) = viewModelScope.launch {
+    fun updateNote(title: String, message: String, id: Int, imageUri: String?) = viewModelScope.launch {
         if (!title.isValidInput() || !message.isValidInput()) {
             Log.d(TAG, "createNote: $title $message")
             _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
@@ -62,7 +75,8 @@ class NotesDetailViewModel @Inject constructor(
             val note = Note(
                 id = id,
                 title = title,
-                message = message
+                message = message,
+                imageUri = imageUri
             )
             repository.updateNote(note)
             _updateNoteState.emit(Resource.Success(Unit))
@@ -72,7 +86,7 @@ class NotesDetailViewModel @Inject constructor(
         }
     }
 
-    fun updatePinnedNote(title: String, message: String, id: Int) = viewModelScope.launch {
+    fun updatePinnedNote(title: String, message: String, id: Int, imageUri: String?) = viewModelScope.launch {
         if (!title.isValidInput() || !message.isValidInput()) {
             Log.d(TAG, "createNote: $title $message")
             _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
@@ -83,7 +97,8 @@ class NotesDetailViewModel @Inject constructor(
             val note = Note(
                 id = id,
                 title = title,
-                message = message
+                message = message,
+                imageUri = imageUri
             )
             repository.updateNote(note)
             _updateNoteState.emit(Resource.Success(Unit))
@@ -93,12 +108,45 @@ class NotesDetailViewModel @Inject constructor(
         }
     }
 
-    fun deleteNote() {
-        //TODO
+    fun deleteNote(note: Note) = viewModelScope.launch {
+        _deleteNoteStatus.emit(Resource.Loading())
+        try {
+            repository.deleteNote(note)
+            _deleteNoteStatus.emit(Resource.Success(Unit))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            _deleteNoteStatus.emit(Resource.Error(e.message ?: "Could not delete"))
+        }
     }
 
-    fun pinNote() {
-        //TODO
+    fun deletePinnedNote(pinnedNote: PinnedNote) = viewModelScope.launch {
+        _deleteNoteStatus.emit(Resource.Loading())
+        try {
+            repository.deletePinnedNote(pinnedNote)
+            _deleteNoteStatus.emit(Resource.Success(Unit))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            _deleteNoteStatus.emit(Resource.Error(e.message ?: "Could not delete"))
+        }
+    }
+
+    fun pinNote(note: Note) = viewModelScope.launch {
+        _pinnedState.emit(Resource.Loading())
+        try {
+            val pinnedNote = PinnedNote(
+                id = note.id,
+                title = note.title,
+                message = note.message,
+                imageUri = note.imageUri,
+                createdTime = note.createdTime ?: System.currentTimeMillis()
+            )
+            repository.addPinnedNote(pinnedNote)
+            repository.deleteNote(note)
+            _pinnedState.emit(Resource.Success(Unit))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            _pinnedState.emit(Resource.Error(e.message ?: "Could note pin note"))
+        }
     }
 
 }

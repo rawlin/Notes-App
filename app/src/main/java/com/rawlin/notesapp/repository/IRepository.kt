@@ -5,6 +5,11 @@ import com.rawlin.notesapp.domain.Note
 import kotlinx.coroutines.flow.Flow
 
 interface IRepository {
+    val pinMode: Flow<Boolean>
+
+    val showNewBottom: Flow<Boolean>
+
+    val isSharingEnabled: Flow<Boolean>
 
     suspend fun addNote(note: Note): Long
 
@@ -12,7 +17,7 @@ interface IRepository {
 
     suspend fun updateNote(note: Note): Int
 
-    fun getAllNotes(): Flow<List<Note>>
+    suspend fun getAllNotes(isSortByCreatedTime: Boolean): Flow<List<Note>>
 
     fun getAllPinnedNotes(): Flow<List<PinnedNote>>
 

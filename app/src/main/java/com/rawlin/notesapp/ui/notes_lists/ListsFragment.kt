@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import android.R
 import android.view.*
+import androidx.core.view.isVisible
+import com.rawlin.notesapp.utils.navigateSafely
 
 
 @AndroidEntryPoint
@@ -44,12 +46,12 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
             createNoteButton.setOnClickListener {
                 val directions =
                     ListsFragmentDirections.actionListsFragmentToNotesDetailsFragment(null, null)
-                findNavController().navigate(directions)
+                findNavController().navigateSafely(directions)
             }
 
             settingsButton.setOnClickListener {
                 val directions = ListsFragmentDirections.actionGlobalSettingsFragment()
-                findNavController().navigate(directions)
+                findNavController().navigateSafely(directions)
             }
         }
 
@@ -61,6 +63,7 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
                         when (allNotesState) {
                             is Resource.Success -> {
                                 allNotesAdapter.submitList(allNotesState.data ?: emptyList())
+                                binding.notesVisiblityTextView.isVisible = allNotesState.data.isNullOrEmpty()
                             }
                             is Resource.Error -> {
                                 Toast.makeText(
@@ -79,6 +82,7 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
                         when (pinnedNotes) {
                             is Resource.Success -> {
                                 pinnedNotesAdapter.submitList(pinnedNotes.data ?: emptyList())
+                                binding.noPinnedNotesTextView.isVisible = pinnedNotes.data.isNullOrEmpty()
                             }
                             is Resource.Error -> {
                                 Toast.makeText(
@@ -92,6 +96,17 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
                     }
                 }
 
+                launch {
+                    viewModel.pinMode.collect { isEnabled ->
+                        binding.apply {
+                            pinnedTextView.isVisible = isEnabled
+                            pinnedHolder.isVisible = isEnabled
+
+                        }
+
+                    }
+                }
+
             }
         }
 
@@ -100,7 +115,7 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
                 note = note,
                 pinnedNote = null
             )
-            findNavController().navigate(destination)
+            findNavController().navigateSafely(destination)
         }
 
         pinnedNotesAdapter.setOnItemClickListener { pinnedNote ->
@@ -108,7 +123,7 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
                 note = null,
                 pinnedNote = pinnedNote
             )
-            findNavController().navigate(destination)
+            findNavController().navigateSafely(destination)
         }
 
     }

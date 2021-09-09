@@ -13,8 +13,11 @@ interface NotesDao {
     @Update(onConflict = OnConflictStrategy.ABORT)
     fun updateNote(note: Note): Int
 
-    @Query("SELECT * FROM note")
+    @Query("SELECT * FROM note WHERE 1 IS 1 ORDER BY createdTime DESC")
     fun getAllNotes(): Flow<List<Note>>
+
+    @Query("SELECT * FROM note ORDER BY createdTime ")
+    fun getNotesByCreatedTime(): Flow<List<Note>>
 
     @Delete
     fun deleteNote(note: Note): Int

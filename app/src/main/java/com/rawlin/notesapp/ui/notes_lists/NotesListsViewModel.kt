@@ -1,25 +1,28 @@
 package com.rawlin.notesapp.ui.notes_lists
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rawlin.notesapp.database.NotesDatabase
 import com.rawlin.notesapp.database.PinnedNote
-import com.rawlin.notesapp.domain.DispatcherProvider
 import com.rawlin.notesapp.domain.Note
-import com.rawlin.notesapp.domain.StandardDispatchers
 import com.rawlin.notesapp.repository.RepositoryImpl
 import com.rawlin.notesapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "NotesListsViewModel"
 
 @HiltViewModel
 class NotesListsViewModel @Inject constructor(
     private val repository: RepositoryImpl,
-    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
+    private var isSortByTime = false
     private val _allNotes: MutableStateFlow<Resource<List<Note>>> = MutableStateFlow(
         Resource.Success(
             emptyList()
@@ -36,15 +39,34 @@ class NotesListsViewModel @Inject constructor(
     val allPinnedNotes: StateFlow<Resource<List<PinnedNote>>>
         get() = _allPinnedNotes
 
+    private val _pinMode = MutableStateFlow(false)
+    val pinMode: StateFlow<Boolean>
+        get() = _pinMode
+
     init {
+        getPrefs()
         getAllNotes()
+    }
+
+    private fun getPrefs() {
+        viewModelScope.launch {
+
+            launch {
+                repository.pinMode.collect {
+                    _pinMode.emit(it)
+                    Log.d(TAG, "PinMode:$it ")
+                }
+
+            }
+
+        }
     }
 
     private fun getAllNotes() {
         viewModelScope.launch {
 
             launch {
-                repository.getAllNotes()
+                repository.getAllNotes(isSortByTime)
                     .catch {
                         _allNotes.emit(Resource.Error("Failed to fetch notes"))
                     }.collect {
@@ -61,6 +83,8 @@ class NotesListsViewModel @Inject constructor(
                         _allPinnedNotes.emit(Resource.Success(it))
                     }
             }
+
+
 
         }
 

@@ -4,15 +4,20 @@ import com.rawlin.notesapp.database.NotesDatabase
 import com.rawlin.notesapp.database.PinnedNote
 import com.rawlin.notesapp.domain.DispatcherProvider
 import com.rawlin.notesapp.domain.Note
+import com.rawlin.notesapp.preferences.DataStoreManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
     private val notesDb: NotesDatabase,
-    private val dispatcher: DispatcherProvider
+    private val dispatcher: DispatcherProvider,
+    private val dataStoreManager: DataStoreManager
 ) : IRepository {
 
     override suspend fun addNote(note: Note) = withContext(dispatcher.io) {
@@ -27,7 +32,8 @@ class RepositoryImpl @Inject constructor(
         notesDb.notesDao().updateNote(note)
     }
 
-    override fun getAllNotes(): Flow<List<Note>> = notesDb.notesDao().getAllNotes()
+    override suspend fun getAllNotes(isSortByCreatedTime: Boolean): Flow<List<Note>> =
+        notesDb.notesDao().getAllNotes()
 
     override fun getAllPinnedNotes(): Flow<List<PinnedNote>> =
         notesDb.pinnedNotesDao().getAllPinnedNotes()
@@ -37,7 +43,17 @@ class RepositoryImpl @Inject constructor(
         notesDb.pinnedNotesDao().addPinnedNote(note)
     }
 
-    override suspend fun deletePinnedNote(note: PinnedNote): Int = withContext(dispatcher.io){
+    override suspend fun deletePinnedNote(note: PinnedNote): Int = withContext(dispatcher.io) {
         notesDb.pinnedNotesDao().deletePinnedNote(note)
     }
+
+    override val pinMode: Flow<Boolean>
+        get() = dataStoreManager.pinMode
+
+    override val showNewBottom: Flow<Boolean>
+        get() = dataStoreManager.showBottom
+
+    override val isSharingEnabled: Flow<Boolean>
+        get() = dataStoreManager.sharing
+
 }
