@@ -25,4 +25,6 @@ interface IRepository {
 
     suspend fun deletePinnedNote(note: PinnedNote): Int
 
+    suspend fun getNumberOfPinnedEntries(): Int
+
 }

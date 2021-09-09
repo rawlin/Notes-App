@@ -31,13 +31,17 @@ class NotesDetailViewModel @Inject constructor(
     val isSharingEnabled
         get() = repository.isSharingEnabled
 
-    private val _pinnedState: MutableStateFlow<Resource<Unit>> = MutableStateFlow(Resource.Loading())
-    val pinnedState: StateFlow<Resource<Unit>>
+    private val _pinnedState: MutableSharedFlow<Resource<Unit>> = MutableSharedFlow()
+    val pinnedState: SharedFlow<Resource<Unit>>
         get() = _pinnedState
 
     private val _deleteNoteStatus = MutableSharedFlow<Resource<Unit>>()
     val deleteNoteStatus: SharedFlow<Resource<Unit>>
         get() = _deleteNoteStatus
+
+    private val _unPinnedState: MutableSharedFlow<Resource<Unit>> = MutableSharedFlow()
+    val unPinnedState: SharedFlow<Resource<Unit>>
+        get() = _unPinnedState
 
 
     fun createNote(title: String, message: String, imageUri: String?) = viewModelScope.launch {
@@ -64,49 +68,51 @@ class NotesDetailViewModel @Inject constructor(
         }
     }
 
-    fun updateNote(title: String, message: String, id: Int, imageUri: String?) = viewModelScope.launch {
-        if (!title.isValidInput() || !message.isValidInput()) {
-            Log.d(TAG, "createNote: $title $message")
-            _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
-            return@launch
+    fun updateNote(title: String, message: String, id: Int, imageUri: String?) =
+        viewModelScope.launch {
+            if (!title.isValidInput() || !message.isValidInput()) {
+                Log.d(TAG, "createNote: $title $message")
+                _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
+                return@launch
+            }
+            _updateNoteState.emit(Resource.Loading())
+            try {
+                val note = Note(
+                    id = id,
+                    title = title,
+                    message = message,
+                    imageUri = imageUri
+                )
+                repository.updateNote(note)
+                _updateNoteState.emit(Resource.Success(Unit))
+            } catch (e: Throwable) {
+                _updateNoteState.emit(Resource.Error("Error updating note"))
+                Log.e(TAG, "Failed to update note: $e")
+            }
         }
-        _updateNoteState.emit(Resource.Loading())
-        try {
-            val note = Note(
-                id = id,
-                title = title,
-                message = message,
-                imageUri = imageUri
-            )
-            repository.updateNote(note)
-            _updateNoteState.emit(Resource.Success(Unit))
-        } catch (e: Throwable) {
-            _updateNoteState.emit(Resource.Error("Error updating note"))
-            Log.e(TAG, "Failed to update note: $e")
-        }
-    }
 
-    fun updatePinnedNote(title: String, message: String, id: Int, imageUri: String?) = viewModelScope.launch {
-        if (!title.isValidInput() || !message.isValidInput()) {
-            Log.d(TAG, "createNote: $title $message")
-            _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
-            return@launch
+    fun updatePinnedNote(title: String, message: String, id: Int, imageUri: String?) =
+        viewModelScope.launch {
+            if (!title.isValidInput() || !message.isValidInput()) {
+                Log.d(TAG, "createNote: $title $message")
+                _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
+                return@launch
+            }
+            _updateNoteState.emit(Resource.Loading())
+            try {
+                val note = Note(
+                    id = id,
+                    title = title,
+                    message = message,
+                    imageUri = imageUri
+                )
+                repository.updateNote(note)
+                _updateNoteState.emit(Resource.Success(Unit))
+            } catch (e: Throwable) {
+                _updateNoteState.emit(Resource.Error("Error updating note"))
+                Log.e(TAG, "Failed to update note: $e")
+            }
         }
-        _updateNoteState.emit(Resource.Loading())
-        try {
-            val note = Note(
-                id = id,
-                title = title,
-                message = message,
-                imageUri = imageUri
-            )
-            repository.updateNote(note)
-            _updateNoteState.emit(Resource.Success(Unit))
-        } catch (e: Throwable) {
-            _updateNoteState.emit(Resource.Error("Error updating note"))
-            Log.e(TAG, "Failed to update note: $e")
-        }
-    }
 
     fun deleteNote(note: Note) = viewModelScope.launch {
         _deleteNoteStatus.emit(Resource.Loading())
@@ -134,18 +140,39 @@ class NotesDetailViewModel @Inject constructor(
         _pinnedState.emit(Resource.Loading())
         try {
             val pinnedNote = PinnedNote(
-                id = note.id,
                 title = note.title,
                 message = note.message,
                 imageUri = note.imageUri,
                 createdTime = note.createdTime ?: System.currentTimeMillis()
             )
-            repository.addPinnedNote(pinnedNote)
-            repository.deleteNote(note)
-            _pinnedState.emit(Resource.Success(Unit))
+            val size = repository.getNumberOfPinnedEntries()
+            if (size < 4) {
+                repository.addPinnedNote(pinnedNote)
+                repository.deleteNote(note)
+                _pinnedState.emit(Resource.Success(Unit))
+                return@launch
+            }
+            _pinnedState.emit(Resource.Error("Only 4 notes can be pinned"))
         } catch (e: Throwable) {
             e.printStackTrace()
             _pinnedState.emit(Resource.Error(e.message ?: "Could note pin note"))
+        }
+    }
+
+    fun unPinNote(pinnedNote: PinnedNote) = viewModelScope.launch {
+        _unPinnedState.emit(Resource.Loading())
+        try {
+            val note = Note(
+                title = pinnedNote.title,
+                message = pinnedNote.message,
+                imageUri = pinnedNote.imageUri
+            )
+            repository.addNote(note)
+            repository.deletePinnedNote(pinnedNote)
+            _unPinnedState.emit(Resource.Success(Unit))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            _unPinnedState.emit(Resource.Error(e.message ?: "Could not unpin"))
         }
     }
 

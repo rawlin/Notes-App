@@ -1,9 +1,10 @@
 package com.rawlin.notesapp.ui.notes_lists
 
 import android.os.Bundle
-import android.widget.LinearLayout
+import android.view.LayoutInflater
+import android.view.View
 import android.widget.Toast
-import androidx.core.view.isEmpty
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -16,15 +17,11 @@ import com.rawlin.notesapp.databinding.FragmentListsBinding
 import com.rawlin.notesapp.ui.notes_lists.adapters.AllNotesAdapter
 import com.rawlin.notesapp.ui.notes_lists.adapters.PinnedNotesAdapter
 import com.rawlin.notesapp.utils.BindingFragment
-import com.rawlin.notesapp.utils.Constants.NOTE
 import com.rawlin.notesapp.utils.Resource
+import com.rawlin.notesapp.utils.navigateSafely
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import android.R
-import android.view.*
-import androidx.core.view.isVisible
-import com.rawlin.notesapp.utils.navigateSafely
 
 
 @AndroidEntryPoint
@@ -38,7 +35,7 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        viewModel.getAllNotes()
         setupAllNotes()
         setupPinnedNotes()
 
@@ -141,5 +138,10 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
             adapter = allNotesAdapter
             layoutManager = GridLayoutManager(requireContext(), 2)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.getAllNotes()
     }
 }

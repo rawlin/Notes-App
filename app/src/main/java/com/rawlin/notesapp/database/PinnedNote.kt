@@ -9,13 +9,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 @Entity(
-    tableName = "pinned_notes",
-    foreignKeys = [ForeignKey(
-        entity = Note::class,
-        parentColumns = arrayOf("id"),
-        childColumns = arrayOf("id"),
-        onDelete = ForeignKey.CASCADE
-    )]
+    tableName = "pinned_notes"
 )
 data class PinnedNote(
     @PrimaryKey
@@ -25,4 +19,4 @@ data class PinnedNote(
     val createdTime: Long,
     val imageUri: String? = null,
     val lastOpened: Long? = null
-): Parcelable
+) : Parcelable

@@ -22,7 +22,7 @@ class NotesListsViewModel @Inject constructor(
     private val repository: RepositoryImpl,
 ) : ViewModel() {
 
-    private var isSortByTime = false
+    private var showNewBottom = true
     private val _allNotes: MutableStateFlow<Resource<List<Note>>> = MutableStateFlow(
         Resource.Success(
             emptyList()
@@ -56,17 +56,22 @@ class NotesListsViewModel @Inject constructor(
                     _pinMode.emit(it)
                     Log.d(TAG, "PinMode:$it ")
                 }
+            }
 
+            launch {
+                repository.showNewBottom.collect {
+                    showNewBottom = it
+                }
             }
 
         }
     }
 
-    private fun getAllNotes() {
+    fun getAllNotes() {
         viewModelScope.launch {
 
             launch {
-                repository.getAllNotes(isSortByTime)
+                repository.getAllNotes(showNewBottom)
                     .catch {
                         _allNotes.emit(Resource.Error("Failed to fetch notes"))
                     }.collect {

@@ -10,7 +10,7 @@ interface PinnedNotesDao {
     @Update(onConflict = OnConflictStrategy.ABORT)
     fun updatePinnedNote(note: PinnedNote): Int
 
-    @Query("SELECT * FROM pinned_notes")
+    @Query("SELECT * FROM pinned_notes ORDER BY createdTime ASC")
     fun getAllPinnedNotes(): Flow<List<PinnedNote>>
 
     @Delete
@@ -18,4 +18,7 @@ interface PinnedNotesDao {
 
     @Insert
     fun addPinnedNote(note: PinnedNote): Long
+
+    @Query("SELECT COUNT(*) FROM pinned_notes")
+    fun getNumberOfEntries(): Int
 }

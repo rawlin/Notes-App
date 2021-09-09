@@ -15,8 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
-import coil.Coil
 import coil.load
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rawlin.notesapp.R
 import com.rawlin.notesapp.database.PinnedNote
 import com.rawlin.notesapp.databinding.FragmentNotesDetailBinding
@@ -24,6 +24,7 @@ import com.rawlin.notesapp.domain.Note
 import com.rawlin.notesapp.utils.BindingFragment
 import com.rawlin.notesapp.utils.Constants.PICK_FROM_GALLARY
 import com.rawlin.notesapp.utils.Resource
+import com.rawlin.notesapp.utils.isValidInput
 import com.rawlin.notesapp.utils.navigateSafely
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
@@ -38,8 +39,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
     private var note: Note? = null
     private var pinnedNote: PinnedNote? = null
     private var isSharingEnabled = false
-    private var shouldBePinned = false
-    private var isImageAdded = false
+    private var imageUri: Uri? = null
 
     override val bindingInflater: (LayoutInflater) -> ViewBinding
         get() = FragmentNotesDetailBinding::inflate
@@ -49,7 +49,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
 
         note = arguments?.let { NotesDetailFragmentArgs.fromBundle(it).note }
         pinnedNote = arguments?.let { NotesDetailFragmentArgs.fromBundle(it).pinnedNote }
-        setView()
+        setViewAndData()
 
         binding.apply {
             noteTitleEditText.doAfterTextChanged { titleText ->
@@ -61,7 +61,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                 val title = noteTitleEditText.text.toString()
                 val message = noteMessageEditText.text.toString()
                 if (pinnedNote != null) {
-                    pinnedNote!!.id?.let { it1 ->
+                    pinnedNote?.id?.let { it1 ->
                         viewModel.updatePinnedNote(
                             title = title,
                             message = message,
@@ -72,7 +72,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                     return@setOnClickListener
                 }
                 if (note != null) {
-                    note!!.id?.let { it1 ->
+                    note?.id?.let { it1 ->
                         viewModel.updateNote(
                             title = title,
                             message = message,
@@ -93,36 +93,22 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
             toolbar.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.action_addImage -> {
-                        if (note?.imageUri == null && pinnedNote?.imageUri == null || !isImageAdded) {
-                            val gallaryIntent = Intent().apply {
-                                action = Intent.ACTION_GET_CONTENT
-                                type = "image/*"
-                            }
-                            Log.d(TAG, "onOptionsItemSelected: Add Image")
-                            startActivityForResult(gallaryIntent, PICK_FROM_GALLARY)
-                            isImageAdded = true
-                        } else {
-                            removeImage()
-                        }
-
+                        handleAddAndRemoveImage()
                         true
                     }
                     R.id.action_delete -> {
-                        note?.let { viewModel.deleteNote(it) }
-                        pinnedNote?.let { viewModel.deletePinnedNote(it) }
+                        handleDelete()
                         Log.d(TAG, "Delete")
                         true
                     }
                     R.id.action_pin -> {
-                        shouldBePinned = true
-                        note?.let { pinNote(it) }
-                        pinnedNote?.let { unPinNote(it) }
+                        handlePinAndUnpin()
                         Log.d(TAG, "Pin")
                         true
                     }
                     R.id.action_share -> {
                         if (isSharingEnabled) {
-                            note?.let { shareNote(it.title, it.message, it.imageUri) }
+                            handleShare()
                         } else {
                             Toast.makeText(
                                 requireContext(),
@@ -204,10 +190,117 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                     }
                 }
 
+                launch {
+                    viewModel.pinnedState.collect { pinnedState ->
+                        when (pinnedState) {
+                            is Resource.Success -> {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Note successfully pinned",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                binding.toolbar.menu.findItem(R.id.action_pin).title = "Unpin Note"
+                            }
+                            is Resource.Error -> {
+                                Toast.makeText(
+                                    requireContext(),
+                                    pinnedState.error,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            is Resource.Loading -> {
+
+                            }
+                        }
+                    }
+                }
+
+                launch {
+                    viewModel.unPinnedState.collect { unPinnedState ->
+                        when (unPinnedState) {
+                            is Resource.Success -> {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Unpinned note",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                binding.toolbar.menu.findItem(R.id.action_pin).title = "Pin"
+                            }
+                            is Resource.Loading -> {
+
+                            }
+                            is Resource.Error -> {
+                                Toast.makeText(
+                                    requireContext(),
+                                    unPinnedState.error,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+
+                    }
+                }
+
             }
         }
 
 
+    }
+
+    private fun handleAddAndRemoveImage() {
+        if (imageUri == null) {
+            val gallaryIntent = Intent().apply {
+                action = Intent.ACTION_GET_CONTENT
+                type = "image/*"
+            }
+            Log.d(TAG, "onOptionsItemSelected: Add Image")
+            startActivityForResult(gallaryIntent, PICK_FROM_GALLARY)
+        } else {
+            removeImage()
+        }
+    }
+
+    private fun handlePinAndUnpin() {
+        if (note == null && pinnedNote == null) {
+            Toast.makeText(requireContext(), "Cannot Pin uncreated note", Toast.LENGTH_SHORT)
+                .show()
+            return
+        }
+        note?.let { pinNote(it) }
+        pinnedNote?.let { unPinNote(it) }
+    }
+
+    private fun handleShare() {
+        val title = binding.noteTitleEditText.text.toString()
+        val message = binding.noteMessageEditText.text.toString()
+        var imageUri = note?.imageUri
+        if (imageUri == null)
+            imageUri = pinnedNote?.imageUri
+        if (title.isValidInput() && message.isValidInput()) {
+            shareNote(title, message, imageUri)
+        } else {
+            Toast.makeText(requireContext(), "Enter title and message to share", Toast.LENGTH_SHORT)
+                .show()
+        }
+
+    }
+
+    private fun handleDelete() {
+        if (note == null && pinnedNote == null) {
+            Toast.makeText(requireContext(), "Cannot delete uncreated note", Toast.LENGTH_SHORT)
+                .show()
+            return
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Delete")
+            .setMessage("Are you sure you want to delete note?")
+            .setPositiveButton("Yes") { _, _ ->
+                note?.let { viewModel.deleteNote(it) }
+                pinnedNote?.let { viewModel.deletePinnedNote(it) }
+            }
+            .setNegativeButton("No") { _, _ ->
+            }
+            .show()
     }
 
     private fun shareNote(title: String, message: String, imageUri: String?) {
@@ -227,11 +320,10 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
     }
 
     private fun unPinNote(pinnedNote: PinnedNote) {
-        TODO("Not yet implemented")
+        viewModel.unPinNote(pinnedNote)
     }
 
     private fun pinNote(note: Note) {
-        binding.toolbar.menu.findItem(R.id.action_pin).title = "Unpin Note"
         viewModel.pinNote(note)
     }
 
@@ -240,24 +332,32 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
         note = note?.copy(imageUri = null)
         pinnedNote = pinnedNote?.copy(imageUri = null)
         binding.toolbar.menu.findItem(R.id.action_addImage).title = "Add Image"
+        imageUri = null
     }
 
-    private fun setView() = with(binding) {
+    private fun setViewAndData() = with(binding) {
         if (pinnedNote != null) {
             noteTitleEditText.setText(pinnedNote?.title)
             noteTitleTextView.text = pinnedNote?.title
             noteMessageEditText.setText(pinnedNote?.message)
+            if (pinnedNote?.imageUri != null) {
+                imageUri = Uri.parse(pinnedNote?.imageUri)
+            }
+            binding.toolbar.menu.findItem(R.id.action_pin).title = "Unpin note"
             if (pinnedNote?.imageUri != null) {
                 setImage(Uri.parse(pinnedNote?.imageUri))
             }
             return@with
         }
         if (note != null) {
-            noteTitleEditText.setText(note!!.title)
+            noteTitleEditText.setText(note?.title)
             noteTitleTextView.text = note?.title
-            noteMessageEditText.setText(note!!.message)
             if (note?.imageUri != null) {
-                setImage(Uri.parse(note!!.imageUri))
+                imageUri = Uri.parse(note?.imageUri)
+            }
+            noteMessageEditText.setText(note?.message)
+            if (note?.imageUri != null) {
+                setImage(Uri.parse(note?.imageUri))
             }
         }
 
@@ -272,8 +372,8 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == PICK_FROM_GALLARY) {
-            val imageUri = data?.data ?: return
-            updateImage(imageUri)
+            imageUri = data?.data
+            updateImage(imageUri ?: return)
         }
     }
 

@@ -5,12 +5,7 @@ import com.rawlin.notesapp.database.PinnedNote
 import com.rawlin.notesapp.domain.DispatcherProvider
 import com.rawlin.notesapp.domain.Note
 import com.rawlin.notesapp.preferences.DataStoreManager
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -33,7 +28,7 @@ class RepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllNotes(isSortByCreatedTime: Boolean): Flow<List<Note>> =
-        notesDb.notesDao().getAllNotes()
+        notesDb.notesDao().getAllNotes(isSortByCreatedTime)
 
     override fun getAllPinnedNotes(): Flow<List<PinnedNote>> =
         notesDb.pinnedNotesDao().getAllPinnedNotes()
@@ -46,6 +41,11 @@ class RepositoryImpl @Inject constructor(
     override suspend fun deletePinnedNote(note: PinnedNote): Int = withContext(dispatcher.io) {
         notesDb.pinnedNotesDao().deletePinnedNote(note)
     }
+
+    override suspend fun getNumberOfPinnedEntries(): Int = withContext(dispatcher.io) {
+        notesDb.pinnedNotesDao().getNumberOfEntries()
+    }
+
 
     override val pinMode: Flow<Boolean>
         get() = dataStoreManager.pinMode
