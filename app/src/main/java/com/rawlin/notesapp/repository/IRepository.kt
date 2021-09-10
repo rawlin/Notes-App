@@ -11,6 +11,12 @@ interface IRepository {
 
     val isSharingEnabled: Flow<Boolean>
 
+    suspend fun setPinMode(isSet: Boolean)
+
+    suspend fun setShowNewBottom(isSet: Boolean)
+
+    suspend fun setIsSharingEnabled(isSet: Boolean)
+
     suspend fun addNote(note: Note): Long
 
     suspend fun deleteNote(note: Note): Int
@@ -21,12 +27,14 @@ interface IRepository {
 
     suspend fun getAllNotes(isSortByCreatedTime: Boolean): Flow<List<Note>>
 
-    fun getAllPinnedNotes(): Flow<List<PinnedNote>>
+    suspend fun getAllPinnedNotes(): Flow<List<PinnedNote>>
 
     suspend fun addPinnedNote(note: PinnedNote): Long
 
     suspend fun deletePinnedNote(note: PinnedNote): Int
 
     suspend fun getNumberOfPinnedEntries(): Int
+
+    suspend fun getAllDataFromFirestore()
 
 }

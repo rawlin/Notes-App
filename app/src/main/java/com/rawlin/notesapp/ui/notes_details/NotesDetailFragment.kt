@@ -66,8 +66,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                             title = title,
                             message = message,
                             id = it1,
-                            imageUri = imageUri,
-                            createdTime = pinnedNote?.createdTime
+                            imageUri = imageUri
                         )
                     }
                     return@setOnClickListener
@@ -78,7 +77,8 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                             title = title,
                             message = message,
                             id = it1,
-                            imageUri = imageUri
+                            imageUri = imageUri,
+                            createdTime = note?.createdTime
                         )
                     }
                     return@setOnClickListener
@@ -265,7 +265,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
     private fun handleAddAndRemoveImage() {
         if (imageUri == null) {
             val gallaryIntent = Intent().apply {
-                action = Intent.ACTION_GET_CONTENT
+                action = Intent.ACTION_OPEN_DOCUMENT
                 type = "image/*"
             }
             Log.d(TAG, "onOptionsItemSelected: Add Image")
@@ -379,7 +379,13 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
     }
 
     private fun setImage(imageUri: Uri?) {
-        binding.imageView.load(imageUri)
+        binding.imageView.load(imageUri) {
+            this.listener({},{}, { _, throwable ->
+                Log.e(TAG, "Could not set image",throwable)
+            },{ _, _ ->
+                Log.d(TAG, "Image set")
+            })
+        }
         binding.imageView.isVisible = true
         binding.toolbar.menu.findItem(R.id.action_addImage).title = getString(R.string.remove_image)
     }

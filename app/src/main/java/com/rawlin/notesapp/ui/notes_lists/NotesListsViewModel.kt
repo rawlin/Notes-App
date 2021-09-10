@@ -89,6 +89,10 @@ class NotesListsViewModel @Inject constructor(
                     }
             }
 
+            launch {
+                repository.getAllDataFromFirestore()
+            }
+
 
 
         }

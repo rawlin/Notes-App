@@ -1,7 +1,6 @@
 package com.rawlin.notesapp.ui.notes_details
 
 import android.net.Uri
-import android.provider.Settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,6 +12,7 @@ import com.rawlin.notesapp.utils.isValidInput
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 
 private const val TAG = "NotesDetailViewModel"
@@ -56,7 +56,9 @@ class NotesDetailViewModel @Inject constructor(
         _createNoteState.emit(Resource.Loading())
         try {
             val imageUriString = imageUri?.toString()
+            val randomId = UUID.randomUUID().toString()
             val note = Note(
+                id = randomId,
                 title = title,
                 message = message,
                 createdTime = System.currentTimeMillis(),
@@ -70,7 +72,7 @@ class NotesDetailViewModel @Inject constructor(
         }
     }
 
-    fun updateNote(title: String, message: String, id: Int, imageUri: Uri?) =
+    fun updateNote(title: String, message: String, id: String, imageUri: Uri?, createdTime: Long?) =
         viewModelScope.launch {
             if (!title.isValidInput() || !message.isValidInput()) {
                 Log.d(TAG, "createNote: $title $message")
@@ -84,7 +86,8 @@ class NotesDetailViewModel @Inject constructor(
                     id = id,
                     title = title,
                     message = message,
-                    imageUri = imageUriString
+                    imageUri = imageUriString,
+                    createdTime = createdTime
                 )
                 repository.updateNote(note)
                 _updateNoteState.emit(Resource.Success(Unit))
@@ -97,9 +100,8 @@ class NotesDetailViewModel @Inject constructor(
     fun updatePinnedNote(
         title: String,
         message: String,
-        id: Int,
-        imageUri: Uri?,
-        createdTime: Long?
+        id: String,
+        imageUri: Uri?
     ) =
         viewModelScope.launch {
             if (!title.isValidInput() || !message.isValidInput()) {
@@ -115,7 +117,7 @@ class NotesDetailViewModel @Inject constructor(
                     title = title,
                     message = message,
                     imageUri = imageUriString,
-                    createdTime = createdTime ?: System.currentTimeMillis()
+                    createdTime = System.currentTimeMillis()
                 )
                 repository.updatePinnedNote(note)
                 _updateNoteState.emit(Resource.Success(Unit))
@@ -151,10 +153,11 @@ class NotesDetailViewModel @Inject constructor(
         _pinnedState.emit(Resource.Loading())
         try {
             val pinnedNote = PinnedNote(
+                id = note.id,
                 title = note.title,
                 message = note.message,
                 imageUri = note.imageUri,
-                createdTime = note.createdTime ?: System.currentTimeMillis()
+                createdTime = System.currentTimeMillis()
             )
             val size = repository.getNumberOfPinnedEntries()
             if (size < 4) {
@@ -174,9 +177,11 @@ class NotesDetailViewModel @Inject constructor(
         _unPinnedState.emit(Resource.Loading())
         try {
             val note = Note(
+                id = pinnedNote.id,
                 title = pinnedNote.title,
                 message = pinnedNote.message,
-                imageUri = pinnedNote.imageUri
+                imageUri = pinnedNote.imageUri,
+                createdTime = System.currentTimeMillis()
             )
             repository.addNote(note)
             repository.deletePinnedNote(pinnedNote)

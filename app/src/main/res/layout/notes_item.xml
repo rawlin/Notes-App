@@ -17,9 +17,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:ellipsize="end"
-            android:maxLength="8"
+            android:maxLength="10"
             android:maxLines="1"
-            android:text="Title"
+            android:textStyle="bold"
+            android:text="@string/title"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -33,13 +34,13 @@
             android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:maxLines="2"
-            android:text="loren ipsum"
+            android:text="@tools:sample/lorem/random"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/itemTitleTextView" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/itemEditedOnTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -48,16 +49,16 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:maxLines="1"
-            android:autoSizeTextType="uniform"
-            android:text="Edited on 07 Sept 2021"
             android:visibility="gone"
-            tools:visibility="visible"
+            app:autoSizeTextType="uniform"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/itemMessageTextView"
-            app:layout_constraintVertical_bias="1.0" />
+            app:layout_constraintVertical_bias="1.0"
+            tools:text="Created on 07 Sept"
+            tools:visibility="visible" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

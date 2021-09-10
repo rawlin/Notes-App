@@ -1,17 +1,16 @@
 package com.rawlin.notesapp.utils
 
-import com.evernote.client.android.EvernoteSession
-
 object Constants {
     const val DATABASE_NAME = "notes_database"
     const val PREFERENCE_NAME = "settings"
-
-    const val CONSUMER_KEY = "rawlin"
-    const val CONSUMER_SECRET = "5a5605cd814041da"
-    val EVERNOTE_SERVICE = EvernoteSession.EvernoteService.SANDBOX
-
-    const val NOTE = "note"
-    const val PINNED_NOTE = "pinned_note"
-
     const val PICK_FROM_GALLARY = 2
+
+    const val NOTES_PATH = "notes"
+    const val PINNED_NOTES_PATH = "pinned_notes"
+
+    const val TITLE = "title"
+    const val MESSAGE = "message"
+    const val IMAGE_URI = "imageUri"
+    const val ID = "id"
+    const val CREATED_TIME = "createdTime"
 }

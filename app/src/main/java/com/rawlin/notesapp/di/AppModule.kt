@@ -1,7 +1,6 @@
 package com.rawlin.notesapp.di
 
 import android.app.Application
-import android.content.Context
 import androidx.room.Room
 import com.rawlin.notesapp.database.NotesDatabase
 import com.rawlin.notesapp.domain.DispatcherProvider

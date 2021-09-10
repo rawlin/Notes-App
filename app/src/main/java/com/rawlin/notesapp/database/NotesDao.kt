@@ -10,6 +10,9 @@ interface NotesDao {
     @Insert
     fun insertNote(note: Note): Long
 
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    fun insertAll(vararg notes: Note)
+
     @Update(onConflict = OnConflictStrategy.ABORT)
     fun updateNote(note: Note): Int
 

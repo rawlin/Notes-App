@@ -5,6 +5,7 @@ plugins {
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
     id 'kotlin-parcelize'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -67,10 +68,12 @@ dependencies {
     //Data Store Preferences
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
-    //Evernote
-    implementation 'com.evernote:android-sdk:2.0.0-RC4'
-
     //Room
     implementation "androidx.room:room-ktx:2.3.0"
     kapt "androidx.room:room-compiler:2.3.0"
+
+    //Firestore
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:28.4.0')
+    implementation 'com.google.firebase:firebase-firestore-ktx'
 }
