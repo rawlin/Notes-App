@@ -326,10 +326,10 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
         }
         sharingIntent.putExtra(Intent.EXTRA_SUBJECT, title)
         sharingIntent.putExtra(Intent.EXTRA_TEXT, message)
-//        if (imageUri != null) {
-//            val uri = Uri.parse(imageUri)
-//            sharingIntent.putExtra(Intent.EXTRA_STREAM, uri)
-//        }
+        if (imageUri != null) {
+            val uri = Uri.parse(imageUri)
+            sharingIntent.putExtra(Intent.EXTRA_STREAM, uri)
+        }
         startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_with)))
 
     }

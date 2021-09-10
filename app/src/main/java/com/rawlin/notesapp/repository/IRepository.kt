@@ -35,6 +35,5 @@ interface IRepository {
 
     suspend fun getNumberOfPinnedEntries(): Int
 
-    suspend fun getAllDataFromFirestore()
 
 }

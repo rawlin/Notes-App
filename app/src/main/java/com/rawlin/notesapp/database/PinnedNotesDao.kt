@@ -1,7 +1,6 @@
 package com.rawlin.notesapp.database
 
 import androidx.room.*
-import com.rawlin.notesapp.domain.Note
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -24,4 +23,7 @@ interface PinnedNotesDao {
 
     @Query("SELECT COUNT(*) FROM pinned_notes")
     fun getNumberOfEntries(): Int
+
+    @Query("DELETE FROM pinned_notes")
+    fun deleteAll()
 }

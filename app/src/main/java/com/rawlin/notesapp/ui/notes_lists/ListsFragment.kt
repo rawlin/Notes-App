@@ -38,7 +38,6 @@ class ListsFragment : BindingFragment<FragmentListsBinding>() {
         viewModel.getAllNotes()
         setupAllNotes()
         setupPinnedNotes()
-
         binding.apply {
             createNoteButton.setOnClickListener {
                 val directions =

@@ -1,6 +1,7 @@
 package com.rawlin.notesapp.repository
 
 import android.util.Log
+import androidx.room.withTransaction
 import com.google.firebase.firestore.Source
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -10,16 +11,17 @@ import com.rawlin.notesapp.domain.DispatcherProvider
 import com.rawlin.notesapp.domain.Note
 import com.rawlin.notesapp.preferences.DataStoreManager
 import com.rawlin.notesapp.utils.Constants.CREATED_TIME
-import com.rawlin.notesapp.utils.Constants.ID
 import com.rawlin.notesapp.utils.Constants.IMAGE_URI
 import com.rawlin.notesapp.utils.Constants.MESSAGE
 import com.rawlin.notesapp.utils.Constants.NOTES_PATH
 import com.rawlin.notesapp.utils.Constants.PINNED_NOTES_PATH
 import com.rawlin.notesapp.utils.Constants.TITLE
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import java.util.*
 import javax.inject.Inject
+import kotlin.coroutines.resume
 
 
 private const val TAG = "RepositoryImpl"
@@ -31,6 +33,7 @@ class RepositoryImpl @Inject constructor(
 ) : IRepository {
 
     private val db = Firebase.firestore
+
 
     override suspend fun addNote(note: Note) = withContext(dispatcher.io) {
         addNoteToFirestore(note)
@@ -55,28 +58,10 @@ class RepositoryImpl @Inject constructor(
 
     override suspend fun getAllNotes(isSortByCreatedTime: Boolean): Flow<List<Note>> =
         withContext(dispatcher.io) {
-
-//            launch {
-//                getAllNotesFromFirestore {
-//                    notesDb.notesDao().insertAll(*it.toTypedArray())
-//                }
-//            }
-
-
             notesDb.notesDao().getAllNotes(isSortByCreatedTime)
         }
 
     override suspend fun getAllPinnedNotes(): Flow<List<PinnedNote>> = withContext(dispatcher.io) {
-
-//        launch {
-//            getAllPinnedNotesFromFirestore {
-//                notesDb.pinnedNotesDao().insertAll(*it.toTypedArray())
-//            }
-//            Log.d("Rawlin", "2getAllPinnedNotes:${Thread.currentThread().name} ")
-//
-//        }
-//        Log.d("Rawlin", "getAllPinnedNotes:${Thread.currentThread().name} ")
-
         notesDb.pinnedNotesDao().getAllPinnedNotes()
     }
 
@@ -110,15 +95,6 @@ class RepositoryImpl @Inject constructor(
     override suspend fun setShowNewBottom(isSet: Boolean) = dataStoreManager.setShowBottom(isSet)
 
     override suspend fun setIsSharingEnabled(isSet: Boolean) = dataStoreManager.setSharing(isSet)
-
-    override suspend fun getAllDataFromFirestore() = withContext(dispatcher.io){
-        getAllNotesFromFirestore {
-            for (i in it) {
-                Log.d(TAG, "getAllDataFromFirestore: $i")
-            }
-//            notesDb.notesDao().insertAll(*it.toTypedArray())
-        }
-    }
 
     private fun addPinnedNoteToFirestore(pinnedNote: PinnedNote) {
         db.collection(PINNED_NOTES_PATH)
@@ -192,82 +168,100 @@ class RepositoryImpl @Inject constructor(
             )
     }
 
-    private suspend fun getAllNotesFromFirestore(allNotes: (List<Note>) -> Unit) {
-        db.collection("root_collection")
-            .get(Source.SERVER)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    if (task.result == null) {
-
-                        allNotes(emptyList())
-
-                    } else {
-                        val list = mutableListOf<Note>()
-                        for (document in task.result!!) {
-                            val id = document.getString(ID) ?: UUID.randomUUID().toString()
-                            val title = document.getString(TITLE) ?: ""
-                            val message = document.getString(MESSAGE) ?: ""
-                            val createdAt =
-                                document.getLong(CREATED_TIME) ?: System.currentTimeMillis()
-                            val imageUri = document.getString(IMAGE_URI)
-                            val pinnedNote = Note(
-                                id = id,
-                                title = title,
-                                message = message,
-                                createdTime = createdAt,
-                                imageUri = imageUri
-                            )
-                            list.add(pinnedNote)
-
-                        }
-                        Log.d("Rawlin", "The current thread ${Thread.currentThread().name}: ")
-                        allNotes(list)
-                    }
-
-                } else {
-                    allNotes(emptyList())
-                    Log.d(TAG, "Error getting all notes from Firestore ", task.exception)
-                }
-            }
+    suspend fun triggerCalls() = withContext(dispatcher.io) {
+        val notesDeferred = async { getAllNotesFromFirestore() }
+        val pinnedNotesDeferred = async { getAllPinnedNotesFromFirestore() }
+        val notes = notesDeferred.await()
+        val pinnedNote = pinnedNotesDeferred.await()
+        notesDb.withTransaction {
+            notesDb.notesDao().deleteAll()
+            notesDb.notesDao().insertAll(*notes.toTypedArray())
+        }
+        notesDb.withTransaction {
+            notesDb.pinnedNotesDao().deleteAll()
+            notesDb.pinnedNotesDao().insertAll(*pinnedNote.toTypedArray())
+        }
     }
 
-    private fun getAllPinnedNotesFromFirestore(allPinnedNotes: (List<PinnedNote>) -> Unit) {
-        db.collection(PINNED_NOTES_PATH)
-            .get(Source.SERVER)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
+    private suspend fun getAllNotesFromFirestore() = withContext(dispatcher.io) {
+        suspendCancellableCoroutine<List<Note>> { continuation ->
+            db.collection(NOTES_PATH)
+                .get(Source.SERVER)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        if (task.result == null) {
+                            continuation.resume(emptyList())
+                        } else {
+                            val list = mutableListOf<Note>()
+                            for (document in task.result!!) {
+                                val id = document.id
+                                val title = document.getString(TITLE) ?: ""
+                                val message = document.getString(MESSAGE) ?: ""
+                                val createdAt =
+                                    document.getLong(CREATED_TIME) ?: System.currentTimeMillis()
+                                val imageUri = document.getString(IMAGE_URI)
+                                val pinnedNote = Note(
+                                    id = id,
+                                    title = title,
+                                    message = message,
+                                    createdTime = createdAt,
+                                    imageUri = imageUri
+                                )
+                                list.add(pinnedNote)
 
-                    if (task.result == null) {
-                        allPinnedNotes.invoke(emptyList())
-                    } else {
-                        val list = mutableListOf<PinnedNote>()
-                        for (document in task.result!!) {
-                            val id = document.getString(ID) ?: UUID.randomUUID().toString()
-                            val title = document.getString(TITLE) ?: ""
-                            val message = document.getString(MESSAGE) ?: ""
-                            val createdAt =
-                                document.getLong(CREATED_TIME) ?: System.currentTimeMillis()
-                            val imageUri = document.getString(IMAGE_URI)
-                            val pinnedNote = PinnedNote(
-                                id = id,
-                                title = title,
-                                message = message,
-                                createdTime = createdAt,
-                                imageUri = imageUri
-                            )
-                            list.add(pinnedNote)
-
+                            }
+                            continuation.resume(list)
                         }
-                        allPinnedNotes(list)
+
+                    } else {
+                        continuation.resume(emptyList())
+                        Log.d(TAG, "Error getting all notes from Firestore ", task.exception)
                     }
-
-
-                } else {
-                    Log.e(TAG, "Error getting pinned notes from Firestore ", task.exception)
-                    allPinnedNotes(emptyList())
                 }
-            }
+        }
+    }
+
+    private suspend fun getAllPinnedNotesFromFirestore() = withContext(dispatcher.io) {
+        suspendCancellableCoroutine<List<PinnedNote>> { continuation ->
+            db.collection(PINNED_NOTES_PATH)
+                .get(Source.SERVER)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+
+                        if (task.result == null) {
+                            continuation.resume(emptyList())
+                        } else {
+                            val list = mutableListOf<PinnedNote>()
+                            for (document in task.result!!) {
+                                val id = document.id
+                                val title = document.getString(TITLE) ?: ""
+                                val message = document.getString(MESSAGE) ?: ""
+                                val createdAt =
+                                    document.getLong(CREATED_TIME) ?: System.currentTimeMillis()
+                                val imageUri = document.getString(IMAGE_URI)
+                                val pinnedNote = PinnedNote(
+                                    id = id,
+                                    title = title,
+                                    message = message,
+                                    createdTime = createdAt,
+                                    imageUri = imageUri
+                                )
+                                list.add(pinnedNote)
+
+                            }
+                            continuation.resume(list)
+                        }
+
+
+                    } else {
+                        Log.e(TAG, "Error getting pinned notes from Firestore ", task.exception)
+                        continuation.resume(emptyList())
+                    }
+                }
+        }
+
 
     }
+
 
 }

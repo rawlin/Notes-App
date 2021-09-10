@@ -1,9 +1,7 @@
 package com.rawlin.notesapp.utils
 
-import android.os.Bundle
-import androidx.annotation.IdRes
-import androidx.navigation.*
-import androidx.navigation.fragment.NavHostFragment.findNavController
+import androidx.navigation.NavController
+import androidx.navigation.NavDirections
 
 fun String.isValidInput(): Boolean {
     return !(this.isEmpty() || this.isBlank())

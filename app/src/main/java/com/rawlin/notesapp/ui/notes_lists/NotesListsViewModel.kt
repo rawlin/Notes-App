@@ -43,6 +43,7 @@ class NotesListsViewModel @Inject constructor(
     val pinMode: StateFlow<Boolean>
         get() = _pinMode
 
+
     init {
         getPrefs()
         getAllNotes()
@@ -89,15 +90,13 @@ class NotesListsViewModel @Inject constructor(
                     }
             }
 
-            launch {
-                repository.getAllDataFromFirestore()
-            }
-
 
 
         }
 
     }
+
+
 
 
 }
