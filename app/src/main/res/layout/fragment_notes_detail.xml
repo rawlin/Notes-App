@@ -33,10 +33,10 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:maxLength="20"
             android:ellipsize="end"
+            android:maxLength="20"
             android:maxLines="1"
-            android:text="Title" />
+            android:text="@string/title" />
 
 
         <ImageButton
@@ -45,6 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:background="@android:color/transparent"
+            android:contentDescription="@string/btn_create_update_desc"
             android:padding="16dp"
             android:src="@drawable/ic_check"
             tools:layout_editor_absoluteX="299dp" />
@@ -70,7 +71,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
-            android:hint="Title" />
+            android:hint="@string/title" />
 
         <EditText
             android:id="@+id/noteMessageEditText"
@@ -81,7 +82,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
-            android:hint="Subtitle" />
+            android:hint="@string/subtitle" />
 
         <ImageView
             android:id="@+id/imageView"
@@ -90,6 +91,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
+            android:contentDescription="@string/image_desc"
             android:padding="16dp"
             android:visibility="invisible"
             tools:src="@tools:sample/backgrounds/scenic" />

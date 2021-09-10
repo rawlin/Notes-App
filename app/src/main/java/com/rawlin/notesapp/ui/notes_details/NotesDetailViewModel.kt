@@ -1,5 +1,7 @@
 package com.rawlin.notesapp.ui.notes_details
 
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -44,21 +46,21 @@ class NotesDetailViewModel @Inject constructor(
         get() = _unPinnedState
 
 
-    fun createNote(title: String, message: String, imageUri: String?) = viewModelScope.launch {
+    fun createNote(title: String, message: String, imageUri: Uri?) = viewModelScope.launch {
         if (!title.isValidInput() || !message.isValidInput()) {
             Log.d(TAG, "createNote: $title $message")
             _createNoteState.emit(Resource.Error("Please enter Title and message to create note"))
             return@launch
         }
         Log.d(TAG, "createNote: $title $message")
-
         _createNoteState.emit(Resource.Loading())
         try {
+            val imageUriString = imageUri?.toString()
             val note = Note(
                 title = title,
                 message = message,
                 createdTime = System.currentTimeMillis(),
-                imageUri = imageUri
+                imageUri = imageUriString
             )
             repository.addNote(note)
             _createNoteState.emit(Resource.Success(Unit))
@@ -68,7 +70,7 @@ class NotesDetailViewModel @Inject constructor(
         }
     }
 
-    fun updateNote(title: String, message: String, id: Int, imageUri: String?) =
+    fun updateNote(title: String, message: String, id: Int, imageUri: Uri?) =
         viewModelScope.launch {
             if (!title.isValidInput() || !message.isValidInput()) {
                 Log.d(TAG, "createNote: $title $message")
@@ -77,11 +79,12 @@ class NotesDetailViewModel @Inject constructor(
             }
             _updateNoteState.emit(Resource.Loading())
             try {
+                val imageUriString = imageUri?.toString()
                 val note = Note(
                     id = id,
                     title = title,
                     message = message,
-                    imageUri = imageUri
+                    imageUri = imageUriString
                 )
                 repository.updateNote(note)
                 _updateNoteState.emit(Resource.Success(Unit))
@@ -91,7 +94,13 @@ class NotesDetailViewModel @Inject constructor(
             }
         }
 
-    fun updatePinnedNote(title: String, message: String, id: Int, imageUri: String?) =
+    fun updatePinnedNote(
+        title: String,
+        message: String,
+        id: Int,
+        imageUri: Uri?,
+        createdTime: Long?
+    ) =
         viewModelScope.launch {
             if (!title.isValidInput() || !message.isValidInput()) {
                 Log.d(TAG, "createNote: $title $message")
@@ -100,13 +109,15 @@ class NotesDetailViewModel @Inject constructor(
             }
             _updateNoteState.emit(Resource.Loading())
             try {
-                val note = Note(
+                val imageUriString = imageUri?.toString()
+                val note = PinnedNote(
                     id = id,
                     title = title,
                     message = message,
-                    imageUri = imageUri
+                    imageUri = imageUriString,
+                    createdTime = createdTime ?: System.currentTimeMillis()
                 )
-                repository.updateNote(note)
+                repository.updatePinnedNote(note)
                 _updateNoteState.emit(Resource.Success(Unit))
             } catch (e: Throwable) {
                 _updateNoteState.emit(Resource.Error("Error updating note"))

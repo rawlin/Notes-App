@@ -17,6 +17,8 @@ interface IRepository {
 
     suspend fun updateNote(note: Note): Int
 
+    suspend fun updatePinnedNote(pinnedNote: PinnedNote): Int
+
     suspend fun getAllNotes(isSortByCreatedTime: Boolean): Flow<List<Note>>
 
     fun getAllPinnedNotes(): Flow<List<PinnedNote>>

@@ -66,7 +66,8 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                             title = title,
                             message = message,
                             id = it1,
-                            imageUri = pinnedNote?.imageUri
+                            imageUri = imageUri,
+                            createdTime = pinnedNote?.createdTime
                         )
                     }
                     return@setOnClickListener
@@ -77,12 +78,12 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                             title = title,
                             message = message,
                             id = it1,
-                            imageUri = note?.imageUri
+                            imageUri = imageUri
                         )
                     }
                     return@setOnClickListener
                 }
-                viewModel.createNote(title, message, note?.imageUri)
+                viewModel.createNote(title, message, imageUri)
             }
 
             detailsSettingsButton.setOnClickListener {
@@ -112,7 +113,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                         } else {
                             Toast.makeText(
                                 requireContext(),
-                                "Enable sharing in settings to share",
+                                getString(R.string.enable_sharing_message),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -131,7 +132,11 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                     viewModel.createNoteState.collect { state ->
                         when (state) {
                             is Resource.Success -> {
-                                Toast.makeText(requireContext(), "Note Created", Toast.LENGTH_SHORT)
+                                Toast.makeText(
+                                    requireContext(),
+                                    getString(R.string.note_created_message),
+                                    Toast.LENGTH_SHORT
+                                )
                                     .show()
                                 findNavController().popBackStack()
                             }
@@ -150,7 +155,11 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                     viewModel.updateNoteState.collect { state ->
                         when (state) {
                             is Resource.Success -> {
-                                Toast.makeText(requireContext(), "Note Updated", Toast.LENGTH_SHORT)
+                                Toast.makeText(
+                                    requireContext(),
+                                    getString(R.string.note_updated_success),
+                                    Toast.LENGTH_SHORT
+                                )
                                     .show()
                                 findNavController().popBackStack()
                                 Log.d(TAG, "Note Updated")
@@ -174,7 +183,11 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                     viewModel.deleteNoteStatus.collect { deleteStatus ->
                         when (deleteStatus) {
                             is Resource.Success -> {
-                                Toast.makeText(requireContext(), "Note deleted", Toast.LENGTH_SHORT)
+                                Toast.makeText(
+                                    requireContext(),
+                                    getString(R.string.note_deleted_message),
+                                    Toast.LENGTH_SHORT
+                                )
                                     .show()
                                 findNavController().popBackStack()
                             }
@@ -196,10 +209,11 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                             is Resource.Success -> {
                                 Toast.makeText(
                                     requireContext(),
-                                    "Note successfully pinned",
+                                    getString(R.string.note_pinned_message),
                                     Toast.LENGTH_SHORT
                                 ).show()
-                                binding.toolbar.menu.findItem(R.id.action_pin).title = "Unpin Note"
+                                binding.toolbar.menu.findItem(R.id.action_pin).title =
+                                    getString(R.string.unpin_note)
                             }
                             is Resource.Error -> {
                                 Toast.makeText(
@@ -221,10 +235,11 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
                             is Resource.Success -> {
                                 Toast.makeText(
                                     requireContext(),
-                                    "Unpinned note",
+                                    getString(R.string.unpinned_success),
                                     Toast.LENGTH_SHORT
                                 ).show()
-                                binding.toolbar.menu.findItem(R.id.action_pin).title = "Pin"
+                                binding.toolbar.menu.findItem(R.id.action_pin).title =
+                                    getString(R.string.pin_note)
                             }
                             is Resource.Loading -> {
 
@@ -262,7 +277,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
 
     private fun handlePinAndUnpin() {
         if (note == null && pinnedNote == null) {
-            Toast.makeText(requireContext(), "Cannot Pin uncreated note", Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), getString(R.string.invalid_pin), Toast.LENGTH_SHORT)
                 .show()
             return
         }
@@ -279,7 +294,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
         if (title.isValidInput() && message.isValidInput()) {
             shareNote(title, message, imageUri)
         } else {
-            Toast.makeText(requireContext(), "Enter title and message to share", Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), getString(R.string.invalid_share), Toast.LENGTH_SHORT)
                 .show()
         }
 
@@ -287,18 +302,18 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
 
     private fun handleDelete() {
         if (note == null && pinnedNote == null) {
-            Toast.makeText(requireContext(), "Cannot delete uncreated note", Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), getString(R.string.invalid_delete), Toast.LENGTH_SHORT)
                 .show()
             return
         }
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Delete")
-            .setMessage("Are you sure you want to delete note?")
-            .setPositiveButton("Yes") { _, _ ->
+            .setTitle(getString(R.string.dialog_title))
+            .setMessage(getString(R.string.dialog_message))
+            .setPositiveButton(R.string.yes) { _, _ ->
                 note?.let { viewModel.deleteNote(it) }
                 pinnedNote?.let { viewModel.deletePinnedNote(it) }
             }
-            .setNegativeButton("No") { _, _ ->
+            .setNegativeButton(getString(R.string.no)) { _, _ ->
             }
             .show()
     }
@@ -306,7 +321,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
     private fun shareNote(title: String, message: String, imageUri: String?) {
 
         val sharingIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/*"
+            type = SHARE_INTENT_TYPE
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         }
         sharingIntent.putExtra(Intent.EXTRA_SUBJECT, title)
@@ -315,7 +330,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
 //            val uri = Uri.parse(imageUri)
 //            sharingIntent.putExtra(Intent.EXTRA_STREAM, uri)
 //        }
-        startActivity(Intent.createChooser(sharingIntent, "Share with"))
+        startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_with)))
 
     }
 
@@ -331,7 +346,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
         binding.imageView.isVisible = false
         note = note?.copy(imageUri = null)
         pinnedNote = pinnedNote?.copy(imageUri = null)
-        binding.toolbar.menu.findItem(R.id.action_addImage).title = "Add Image"
+        binding.toolbar.menu.findItem(R.id.action_addImage).title = getString(R.string.add_image)
         imageUri = null
     }
 
@@ -343,7 +358,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
             if (pinnedNote?.imageUri != null) {
                 imageUri = Uri.parse(pinnedNote?.imageUri)
             }
-            binding.toolbar.menu.findItem(R.id.action_pin).title = "Unpin note"
+            binding.toolbar.menu.findItem(R.id.action_pin).title = getString(R.string.unpin_note)
             if (pinnedNote?.imageUri != null) {
                 setImage(Uri.parse(pinnedNote?.imageUri))
             }
@@ -366,7 +381,7 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
     private fun setImage(imageUri: Uri?) {
         binding.imageView.load(imageUri)
         binding.imageView.isVisible = true
-        binding.toolbar.menu.findItem(R.id.action_addImage).title = "Remove Image"
+        binding.toolbar.menu.findItem(R.id.action_addImage).title = getString(R.string.remove_image)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -383,5 +398,9 @@ class NotesDetailFragment : BindingFragment<FragmentNotesDetailBinding>() {
         note = newNote
         val newPinnedNote = pinnedNote?.copy(imageUri = imageUri.toString())
         pinnedNote = newPinnedNote
+    }
+
+    companion object {
+        private const val SHARE_INTENT_TYPE = "text/*"
     }
 }

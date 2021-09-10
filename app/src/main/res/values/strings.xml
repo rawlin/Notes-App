@@ -1,5 +1,38 @@
 <resources>
     <string name="app_name">Notes App</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="pinned_title">Pinned</string>
+    <string name="others_title">Others</string>
+
+    <string name="title">Title</string>
+    <string name="subtitle">Subtitle</string>
+    <string name="image_desc">Added Image</string>
+    <string name="btn_create_update_desc">Create/Update Button</string>
+    <string name="no_notes_text">Add Note to be visible here</string>
+    <string name="no_pinned_text">Your Pinned notes will be visible here</string>
+
+    <string name="remove_image">Remove Image</string>
+    <string name="unpin_note">Unpin Note</string>
+    <string name="pin_note">Pin</string>
+    <string name="add_image">Add Image</string>
+    <string name="share_with">Share with</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="dialog_title">Delete</string>
+    <string name="unpinned_success">Unpinned Note</string>
+    <string name="note_updated_success">Note Updated</string>
+    <string name="enable_sharing_message">Enable sharing in settings to share</string>
+    <string name="dialog_message">Are you sure you want to delete note?</string>
+
+    <!-- Success strings-->
+    <string name="note_created_message">Note Created</string>
+    <string name="note_pinned_message">Note Pinned</string>
+    <string name="note_deleted_message">Note Deleted</string>
+
+    <!-- Invalid operation strings-->
+    <string name="invalid_delete">Cannot delete uncreated note</string>
+    <string name="invalid_share">Enter title and message to share</string>
+    <string name="invalid_pin">Cannot Pin uncreated note</string>
+
+
 </resources>

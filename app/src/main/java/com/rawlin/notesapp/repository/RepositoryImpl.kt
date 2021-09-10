@@ -27,6 +27,10 @@ class RepositoryImpl @Inject constructor(
         notesDb.notesDao().updateNote(note)
     }
 
+    override suspend fun updatePinnedNote(pinnedNote: PinnedNote): Int = withContext(dispatcher.io){
+        notesDb.pinnedNotesDao().updatePinnedNote(pinnedNote)
+    }
+
     override suspend fun getAllNotes(isSortByCreatedTime: Boolean): Flow<List<Note>> =
         notesDb.notesDao().getAllNotes(isSortByCreatedTime)
 
